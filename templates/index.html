@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة التشخيص والتحليل الطبي</title>
+    <style>
+        :root {
+            --primary-blue: #0056b3;
+            --light-blue: #e8f0fe;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --border-color: #e0e0e0;
+            --danger: #d9534f;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0 0 40px 0; color: var(--text-main); }
+
+        /* شريط التنقل العلوي */
+        .navbar { background-color: var(--primary-blue); padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        .navbar-brand { font-size: 18px; font-weight: bold; color: white; text-decoration: none; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 15px; font-weight: 500; padding: 6px 12px; border-radius: 6px; transition: 0.2s; }
+        .nav-links a:hover, .nav-links a.active { background-color: rgba(255,255,255,0.2); color: white; }
+
+        .page-content { padding: 24px 20px; max-width: 950px; margin: auto; }
+        .header { text-align: center; margin-bottom: 24px; }
+        .header h1 { color: var(--primary-blue); font-size: 24px; margin: 0; }
+        .header p { color: var(--text-muted); font-size: 14px; margin-top: 5px; }
+        
+        .section-card { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .step-title { display: flex; align-items: center; font-size: 16px; font-weight: bold; margin-bottom: 18px; }
+        .step-number { background: var(--light-blue); color: var(--primary-blue); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-left: 10px; font-size: 14px; }
+        
+        .regions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; }
+        .region-btn { background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 10px; padding: 14px 10px; text-align: center; cursor: pointer; transition: all 0.2s; font-size: 14px; font-weight: 600; }
+        .region-btn span { display: block; font-size: 24px; margin-bottom: 8px; }
+        .region-btn.active { border-color: var(--primary-blue); background-color: var(--light-blue); }
+        
+        .symptoms-container { display: flex; flex-wrap: wrap; gap: 10px; max-height: 400px; overflow-y: auto; padding: 12px; border: 1px solid #eee; border-radius: 8px; }
+        
+        .symptom-label { display: inline-flex; align-items: center; background: var(--bg-color); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 20px; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+        .symptom-label::before { content: '+'; margin-left: 8px; color: var(--text-muted); font-weight: bold; }
+        input[type="checkbox"] { display: none; }
+        input[type="checkbox"]:checked + .symptom-label { background: var(--primary-blue); color: white; border-color: var(--primary-blue); }
+        input[type="checkbox"]:checked + .symptom-label::before { content: '✓'; color: white; }
+
+        .toggle-more-btn { display: none; margin-top: 14px; background: transparent; color: var(--primary-blue); border: 1px dashed var(--primary-blue); padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .toggle-more-btn:hover { background: var(--light-blue); }
+
+        /* شريط الأعراض المختارة (Chips) */
+        .selected-bar { display: none; background: var(--card-bg); border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; border: 1px solid #c9dff8; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        .selected-bar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 14px; font-weight: bold; color: var(--primary-blue); }
+        .clear-all-btn { background: transparent; color: var(--danger); border: 1px solid var(--danger); padding: 4px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; transition: 0.2s; }
+        .clear-all-btn:hover { background: var(--danger); color: white; }
+        .chips-wrapper { display: flex; flex-wrap: wrap; gap: 8px; }
+        .chip { display: inline-flex; align-items: center; gap: 8px; background: var(--light-blue); color: var(--primary-blue); padding: 6px 12px; border-radius: 16px; font-size: 13px; font-weight: 600; }
+        .chip-remove { background: none; border: none; color: var(--primary-blue); font-size: 16px; font-weight: bold; cursor: pointer; padding: 0 2px; line-height: 1; }
+        .chip-remove:hover { color: var(--danger); }
+        
+        .analyze-btn { display: block; width: 100%; background: var(--primary-blue); color: white; border: none; padding: 15px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .analyze-btn:hover { background: #004494; }
+        
+        /* صندوق النتائج */
+        .results-section { display: none; background: var(--card-bg); border-radius: 12px; padding: 24px; margin-top: 20px; border: 2px solid var(--primary-blue); }
+        .result-box { padding: 12px 16px; margin-top: 10px; background: var(--light-blue); border-radius: 8px; font-weight: bold; }
+        .print-symptoms-summary { display: none; margin: 16px 0; padding: 12px; background: #f8f9fa; border-radius: 8px; border: 1px solid #ddd; font-size: 14px; }
+        .print-btn { margin-top: 18px; background: #198754; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .print-btn:hover { background: #146c43; }
+        .disclaimer { font-size: 12px; color: var(--text-muted); margin-top: 16px; border-top: 1px solid #eee; padding-top: 10px; }
+
+        /* تنسيق الطباعة (PDF) */
+        @media print {
+            body { background: white; padding: 0; }
+            .navbar, .no-print, .print-btn { display: none !important; }
+            .results-section { display: block !important; border: 1px solid #ccc; box-shadow: none; margin: 0; }
+            .print-symptoms-summary { display: block !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">منصة التشخيص الطبي الذكي</a>
+        <div class="nav-links">
+            <a href="/" class="active">التشخيص</a>
+            <a href="/about">عن المشروع والخوارزميات</a>
+            <a href="/how-it-works">كيف يعمل النظام</a>
+        </div>
+    </nav>
+
+    <div class="page-content">
+        <div class="header no-print">
+            <h1>منصة التشخيص والتحليل الطبي</h1>
+            <p>نظام ذكي لتحليل الأعراض والتنبؤ بالحالات المرضية باستخدام الذكاء الاصطناعي</p>
+        </div>
+
+        <div class="section-card no-print">
+            <div class="step-title"><div class="step-number">1</div> حدّد منطقة العرض أو الشكوى الطبية</div>
+            <div class="regions-grid">
+                <div class="region-btn active" onclick="showSymptoms('head', this)"><span>🧠</span> الرأس والعينين</div>
+                <div class="region-btn" onclick="showSymptoms('chest', this)"><span>🫁</span> الصدر والتنفس</div>
+                <div class="region-btn" onclick="showSymptoms('abdomen', this)"><span>🩺</span> البطن والهضم</div>
+                <div class="region-btn" onclick="showSymptoms('limbs', this)"><span>🦴</span> الأطراف والمفاصل</div>
+                <div class="region-btn" onclick="showSymptoms('skin', this)"><span>🩹</span> الأعراض الجلدية</div>
+                <div class="region-btn" onclick="showSymptoms('mental', this)"><span>🧘</span> النفسية والسلوكية</div>
+                <div class="region-btn" onclick="showSymptoms('general', this)"><span>🌡️</span> أعراض عامة</div>
+            </div>
+        </div>
+
+        <div class="section-card no-print">
+            <div class="step-title"><div class="step-number">2</div> اختر الأعراض التي تشعر بها</div>
+            <div id="symptoms-box" class="symptoms-container"></div>
+            <button id="toggle-more-btn" class="toggle-more-btn" onclick="toggleMoreSymptoms()"></button>
+        </div>
+
+        <!-- شريط الأعراض المختارة -->
+        <div class="selected-bar no-print" id="selected-bar">
+            <div class="selected-bar-header">
+                <span>الأعراض المختارة (<span id="selected-count">0</span>)</span>
+                <button class="clear-all-btn" onclick="clearAllSymptoms()">مسح الكل</button>
+            </div>
+            <div class="chips-wrapper" id="chips-wrapper"></div>
+        </div>
+
+        <button class="analyze-btn no-print" onclick="getDiagnosis()">إجراء التحليل الطبي</button>
+
+        <!-- صندوق النتيجة والتقرير -->
+        <div class="results-section" id="results-container">
+            <div class="step-title"><div class="step-number">3</div> نتيجة التشخيص المبدئي</div>
+            
+            <!-- يظهر هذا الجزء فقط عند طباعة التقرير PDF -->
+            <div class="print-symptoms-summary" id="print-symptoms-summary"></div>
+
+            <!-- النتيجة الرئيسية الواحدة للمريض -->
+            <div style="background: var(--light-blue); border: 2px solid var(--primary-blue); border-radius: 10px; padding: 20px; text-align: center; margin-bottom: 14px;">
+                <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 6px;">التشخيص المرجّح</div>
+                <div id="final-result" style="font-size: 22px; font-weight: bold; color: var(--primary-blue);"></div>
+                <div id="agreement-note" style="font-size: 13px; color: var(--text-muted); margin-top: 6px;"></div>
+            </div>
+
+            <!-- زر إظهار/إخفاء تفاصيل الخوارزميات الثلاث -->
+            <button type="button" class="toggle-more-btn no-print" id="toggle-models-btn" style="display: inline-block; margin-top: 0; margin-bottom: 12px;" onclick="toggleModelDetails()">
+                + عرض تفاصيل الخوارزميات الثلاث
+            </button>
+
+            <!-- تفاصيل الخوارزميات (مخفية افتراضياً) -->
+            <div id="models-details" style="display: none; margin-bottom: 14px;">
+                <div class="result-box">نايف بايز (Naive Bayes): <span id="nb-result" style="color: var(--primary-blue);"></span></div>
+                <div class="result-box">أقرب الجيران (KNN): <span id="knn-result" style="color: var(--primary-blue);"></span></div>
+                <div class="result-box">شجرة القرار (Decision Tree): <span id="dt-result" style="color: var(--primary-blue);"></span></div>
+            </div>
+
+            <div>
+                <button class="print-btn" onclick="window.print()">طباعة / حفظ التقرير (PDF)</button>
+            </div>
+            <p class="disclaimer">إخلاء مسؤولية: هذا التقرير ناتج عن نماذج ذكاء اصطناعي لأغراض أكاديمية ولا يغني عن استشارة الطبيب المختص.</p>
+        </div>
+    </div>
+
+    <script>
+        const DEFAULT_VISIBLE = 8;
+
+        const symptomsData = {
+            head: [
+                {id: 'headache', label: 'صداع'}, {id: 'dizziness', label: 'دوار أو دوخة'}, {id: 'sore throat', label: 'احتقان أو ألم في الحلق'}, {id: 'ear pain', label: 'ألم في الأذن'}, {id: 'sneezing', label: 'عطس'}, {id: 'coryza', label: 'زكام'}, {id: 'eye redness', label: 'احمرار في العين'}, {id: 'toothache', label: 'ألم في الأسنان'},
+                {id: 'frontal headache', label: 'صداع أمامي'}, {id: 'diminished vision', label: 'ضعف في الرؤية'}, {id: 'double vision', label: 'رؤية مزدوجة'}, {id: 'cross-eyed', label: 'حول في العين'}, {id: 'symptoms of eye', label: 'أعراض في العين'}, {id: 'pain in eye', label: 'ألم في العين'}, {id: 'eye moves abnormally', label: 'حركة غير طبيعية للعين'}, {id: 'abnormal movement of eyelid', label: 'حركة غير طبيعية لجفن العين'}, {id: 'foreign body sensation in eye', label: 'شعور بجسم غريب في العين'}, {id: 'white discharge from eye', label: 'إفرازات بيضاء من العين'}, {id: 'eye deviation', label: 'انحراف في العين'}, {id: 'spots or clouds in vision', label: 'بقع أو غيوم في الرؤية'}, {id: 'lacrimation', label: 'تدميع مستمر للعين'}, {id: 'itchiness of eye', label: 'حكة في العين'}, {id: 'blindness', label: 'فقدان الرؤية (عمى)'}, {id: 'eye burns or stings', label: 'حرقة أو لسعة في العين'}, {id: 'itchy eyelid', label: 'حكة في جفن العين'}, {id: 'mass on eyelid', label: 'كتلة في جفن العين'}, {id: 'swollen eye', label: 'تورم في العين'}, {id: 'eyelid swelling', label: 'تورم في جفن العين'}, {id: 'eyelid lesion or rash', label: 'آفات أو طفح على جفن العين'}, {id: 'cloudy eye', label: 'غشاوة أو ضبابية في العين'}, {id: 'bleeding from eye', label: 'نزيف من العين'}, {id: 'bleeding from ear', label: 'نزيف من الأذن'}, {id: 'mass on ear', label: 'كتلة في الأذن'}, {id: 'abnormal size or shape of ear', label: 'حجم أو شكل غير طبيعي للأذن'}, {id: 'pulling at ears', label: 'شد الأذن'}, {id: 'redness in ear', label: 'احمرار في الأذن'}, {id: 'fluid in ear', label: 'سوائل في الأذن'}, {id: 'plugged feeling in ear', label: 'شعور بانسداد في الأذن'}, {id: 'itchy ear(s)', label: 'حكة في الأذن'}, {id: 'ringing in ear', label: 'طنين في الأذن'}, {id: 'pus draining from ear', label: 'خروج صديد من الأذن'}, {id: 'diminished hearing', label: 'ضعف في السمع'}, {id: 'hoarse voice', label: 'بحّة في الصوت'}, {id: 'difficulty speaking', label: 'صعوبة في الكلام'}, {id: 'lump in throat', label: 'شعور بغصة في الحلق'}, {id: 'throat feels tight', label: 'شعور بضيق في الحلق'}, {id: 'difficulty in swallowing', label: 'صعوبة في البلع'}, {id: 'jaw swelling', label: 'تورم في الفك'}, {id: 'mouth dryness', label: 'جفاف الفم'}, {id: 'dry lips', label: 'جفاف الشفاه'}, {id: 'facial pain', label: 'ألم في الوجه'}, {id: 'mouth ulcer', label: 'تقرحات في الفم'}, {id: 'irregular appearing scalp', label: 'مظهر غير طبيعي لفروة الرأس'}, {id: 'dry or flaky scalp', label: 'فروة رأس جافة أو متقشرة'}, {id: 'itchy scalp', label: 'حكة في فروة الرأس'}, {id: 'tongue lesions', label: 'تقرحات في اللسان'}, {id: 'abnormal appearing tongue', label: 'مظهر غير طبيعي للسان'}, {id: 'swollen tongue', label: 'تورم في اللسان'}, {id: 'lip sore', label: 'تقرحات في الشفاه'}, {id: 'mouth pain', label: 'ألم في الفم'}, {id: 'disturbance of smell or taste', label: 'اضطراب في حاسة الشم أو التذوق'}, {id: 'jaw pain', label: 'ألم في الفك'}, {id: 'tongue pain', label: 'ألم في اللسان'}, {id: 'bleeding in mouth', label: 'نزيف في الفم'}, {id: 'tongue bleeding', label: 'نزيف في اللسان'}, {id: 'bleeding gums', label: 'نزيف اللثة'}, {id: 'pain in gums', label: 'ألم في اللثة'}, {id: 'sore in nose', label: 'تقرحات في الأنف'}, {id: 'nose deformity', label: 'تشوه في الأنف'}, {id: 'redness in or around nose', label: 'احمرار في أو حول الأنف'}, {id: 'nosebleed', label: 'رعاف'}, {id: 'sinus congestion', label: 'احتقان الجيوب الأنفية'}, {id: 'painful sinuses', label: 'ألم في الجيوب الأنفية'}, {id: 'symptoms of the face', label: 'أعراض في الوجه'}, {id: 'eyelid retracted', label: 'تراجع أو سحب في جفن العين'}, {id: 'lump over jaw', label: 'كتلة فوق الفك'}, {id: 'throat redness', label: 'احمرار في الحلق'}, {id: 'throat irritation', label: 'تهيج في الحلق'}, {id: 'drainage in throat', label: 'إفرازات نازلة في الحلق'}, {id: 'throat swelling', label: 'تورم في الحلق'}, {id: 'lip swelling', label: 'تورم الشفاه'}, {id: 'swollen or red tonsils', label: 'تورم أو احمرار في اللوزتين'}, {id: 'pupils unequal', label: 'حجم بؤبؤ العين غير متساوي'}
+            ],
+            chest: [
+                {id: 'cough', label: 'سعال (كحة)'}, {id: 'shortness of breath', label: 'ضيق التنفس'}, {id: 'sharp chest pain', label: 'ألم حاد في الصدر'}, {id: 'chest tightness', label: 'ضيق أو ثقل في الصدر'}, {id: 'palpitations', label: 'خفقان في القلب'}, {id: 'wheezing', label: 'أزيز أو صفير بالصدر'}, {id: 'nasal congestion', label: 'احتقان في الأنف'}, {id: 'coughing up sputum', label: 'سعال مصحوب ببلغم'},
+                {id: 'irregular heartbeat', label: 'عدم انتظام ضربات القلب'}, {id: 'breathing fast', label: 'تنفس سريع'}, {id: 'hemoptysis', label: 'سعال مصحوب بدم'}, {id: 'congestion in chest', label: 'احتقان في الصدر'}, {id: 'apnea', label: 'انقطاع التنفس'}, {id: 'abnormal breathing sounds', label: 'أصوات تنفس غير طبيعية'}, {id: 'burning chest pain', label: 'ألم حارق في الصدر'}, {id: 'hurts to breath', label: 'ألم عند التنفس'}, {id: 'difficulty breathing', label: 'صعوبة في التنفس'}, {id: 'decreased heart rate', label: 'تباطؤ ضربات القلب'}, {id: 'increased heart rate', label: 'تسارع ضربات القلب'}, {id: 'pus in sputum', label: 'صديد في البلغم'}
+            ],
+            abdomen: [
+                {id: 'sharp abdominal pain', label: 'ألم حاد في البطن'}, {id: 'nausea', label: 'غثيان'}, {id: 'vomiting', label: 'قيء (استفراغ)'}, {id: 'diarrhea', label: 'إسهال'}, {id: 'constipation', label: 'إمساك'}, {id: 'heartburn', label: 'حرقة في المعدة (حموضة)'}, {id: 'stomach bloating', label: 'انتفاخ في المعدة'}, {id: 'lower abdominal pain', label: 'ألم في أسفل البطن'},
+                {id: 'upper abdominal pain', label: 'ألم في الجزء العلوي من البطن'}, {id: 'blood in stool', label: 'دم في البراز'}, {id: 'flatulence', label: 'انتفاخ وغازات'}, {id: 'vomiting blood', label: 'قيء مصحوب بدم'}, {id: 'regurgitation', label: 'ارتجاع (حموضة)'}, {id: 'regurgitation.1', label: 'ارتجاع (حموضة) متكرر'}, {id: 'burning abdominal pain', label: 'ألم حارق في البطن'}, {id: 'difficulty eating', label: 'صعوبة في الأكل'}, {id: 'changes in stool appearance', label: 'تغير في شكل البراز'}, {id: 'swollen abdomen', label: 'تورم أو انتفاخ البطن'}, {id: 'melena', label: 'براز أسود داكن (نزيف هضمي)'}, {id: 'incontinence of stool', label: 'سلس البراز'}, {id: 'mass or swelling around the anus', label: 'كتلة أو تورم حول الشرج'}, {id: 'discharge in stools', label: 'إفرازات في البراز'}, {id: 'pain of the anus', label: 'ألم في فتحة الشرج'}, {id: 'itching of the anus', label: 'حكة في فتحة الشرج'}, {id: 'rectal bleeding', label: 'نزيف من المستقيم/الشرج'}, {id: 'abdominal distention', label: 'تمدد أو انتفاخ البطن'}, {id: 'infant spitting up', label: 'بصق أو ترجيع عند الرضيع'}
+            ],
+            limbs: [
+                {id: 'back pain', label: 'ألم في الظهر'}, {id: 'low back pain', label: 'ألم في أسفل الظهر'}, {id: 'neck pain', label: 'ألم في الرقبة'}, {id: 'joint pain', label: 'ألم في المفاصل'}, {id: 'knee pain', label: 'ألم في الركبة'}, {id: 'shoulder pain', label: 'ألم في الكتف'}, {id: 'leg pain', label: 'ألم في الساق'}, {id: 'muscle weakness', label: 'ضعف في العضلات'},
+                {id: 'abnormal involuntary movements', label: 'حركات لاإرادية غير طبيعية'}, {id: 'hip pain', label: 'ألم في الورك'}, {id: 'elbow weakness', label: 'ضعف في الكوع'}, {id: 'back weakness', label: 'ضعف في الظهر'}, {id: 'hand or finger pain', label: 'ألم في اليد أو الأصابع'}, {id: 'wrist pain', label: 'ألم في المعصم'}, {id: 'hand or finger swelling', label: 'تورم في اليد أو الأصابع'}, {id: 'arm pain', label: 'ألم في الذراع'}, {id: 'wrist swelling', label: 'تورم في المعصم'}, {id: 'arm stiffness or tightness', label: 'تصلب أو شد في الذراع'}, {id: 'arm swelling', label: 'تورم في الذراع'}, {id: 'hand or finger stiffness or tightness', label: 'تصلب في اليد أو الأصابع'}, {id: 'wrist stiffness or tightness', label: 'تصلب في المعصم'}, {id: 'peripheral edema', label: 'تورم في الأطراف'}, {id: 'neck mass', label: 'كتلة في الرقبة'}, {id: 'neck swelling', label: 'تورم في الرقبة'}, {id: 'foot or toe pain', label: 'ألم في القدم أو أصابع القدم'}, {id: 'bowlegged or knock-kneed', label: 'تقوس في الساقين أو الركبتين'}, {id: 'ankle pain', label: 'ألم في الكاحل'}, {id: 'bones are painful', label: 'ألم في العظام'}, {id: 'knee weakness', label: 'ضعف في الركبة'}, {id: 'elbow pain', label: 'ألم في الكوع'}, {id: 'knee swelling', label: 'تورم في الركبة'}, {id: 'knee lump or mass', label: 'كتلة في الركبة'}, {id: 'problems with movement', label: 'صعوبة في الحركة'}, {id: 'knee stiffness or tightness', label: 'تصلب في الركبة'}, {id: 'leg swelling', label: 'تورم في الساق'}, {id: 'foot or toe swelling', label: 'تورم في القدم أو الأصابع'}, {id: 'neck stiffness or tightness', label: 'تصلب أو تيبس في الرقبة'}, {id: 'shoulder stiffness or tightness', label: 'تصلب في الكتف'}, {id: 'shoulder weakness', label: 'ضعف في الكتف'}, {id: 'arm cramps or spasms', label: 'تشنجات في الذراع'}, {id: 'shoulder swelling', label: 'تورم في الكتف'}, {id: 'leg cramps or spasms', label: 'تشنجات في الساق'}, {id: 'lower body pain', label: 'ألم في الجزء السفلي من الجسم'}, {id: 'cramps and spasms', label: 'تشنجات وتقلصات'}, {id: 'rib pain', label: 'ألم في الأضلاع'}, {id: 'muscle stiffness or tightness', label: 'تصلب في العضلات'}, {id: 'hand or finger lump or mass', label: 'كتلة في اليد أو الأصابع'}, {id: 'leg stiffness or tightness', label: 'تصلب في الساق'}, {id: 'joint stiffness or tightness', label: 'تصلب في المفاصل'}, {id: 'wrist weakness', label: 'ضعف في المعصم'}, {id: 'lymphedema', label: 'تورم لمفاوي'}, {id: 'muscle swelling', label: 'تورم في العضلات'}, {id: 'low back weakness', label: 'ضعف في أسفل الظهر'}, {id: 'elbow cramps or spasms', label: 'تشنجات في الكوع'}, {id: 'back cramps or spasms', label: 'تشنجات في الظهر'}, {id: 'stiffness all over', label: 'تصلب في جميع أنحاء الجسم'}, {id: 'muscle cramps, contractures, or spasms', label: 'تشنجات أو تقلصات عضلية'}, {id: 'low back cramps or spasms', label: 'تشنجات في أسفل الظهر'}, {id: 'back mass or lump', label: 'كتلة في الظهر'}, {id: 'hip swelling', label: 'تورم في الورك'}, {id: 'foot or toe cramps or spasms', label: 'تشنجات في القدم أو الأصابع'}, {id: 'foot or toe lump or mass', label: 'كتلة في القدم أو الأصابع'}, {id: 'low back swelling', label: 'تورم في أسفل الظهر'}, {id: 'ankle swelling', label: 'تورم في الكاحل'}, {id: 'hip lump or mass', label: 'كتلة في الورك'}, {id: 'feet turned in', label: 'دوران القدم للداخل'}, {id: 'foot or toe stiffness or tightness', label: 'تصلب في القدم أو الأصابع'}, {id: 'elbow swelling', label: 'تورم في الكوع'}, {id: 'elbow stiffness or tightness', label: 'تصلب في الكوع'}, {id: 'hand or finger weakness', label: 'ضعف في اليد أو الأصابع'}, {id: 'hip stiffness or tightness', label: 'تصلب في الورك'}, {id: 'arm weakness', label: 'ضعف في الذراع'}, {id: 'leg lump or mass', label: 'كتلة في الساق'}, {id: 'neck cramps or spasms', label: 'تشنجات في الرقبة'}, {id: 'knee cramps or spasms', label: 'تشنجات في الركبة'}, {id: 'leg weakness', label: 'ضعف في الساق'}, {id: 'posture problems', label: 'مشاكل في وضعية الجسم (القامة)'}, {id: 'shoulder lump or mass', label: 'كتلة في الكتف'}, {id: 'arm lump or mass', label: 'كتلة في الذراع'}, {id: 'elbow lump or mass', label: 'كتلة في الكوع'}, {id: 'joint swelling', label: 'تورم في المفاصل'}, {id: 'foot or toe weakness', label: 'ضعف في القدم أو الأصابع'}, {id: 'hand or finger cramps or spasms', label: 'تشنجات في اليد أو الأصابع'}, {id: 'back stiffness or tightness', label: 'تصلب أو تيبس في الظهر'}, {id: 'wrist lump or mass', label: 'كتلة في المعصم'}, {id: 'low back stiffness or tightness', label: 'تصلب في أسفل الظهر'}, {id: 'ankle stiffness or tightness', label: 'تصلب في الكاحل'}, {id: 'ankle weakness', label: 'ضعف في الكاحل'}, {id: 'neck weakness', label: 'ضعف في الرقبة'}, {id: 'back swelling', label: 'تورم في الظهر'}, {id: 'hip weakness', label: 'ضعف في الورك'}
+            ],
+            skin: [
+                {id: 'skin rash', label: 'طفح جلدي'}, {id: 'itching of skin', label: 'حكة في الجلد'}, {id: 'acne or pimples', label: 'حب الشباب أو بثور'}, {id: 'skin lesion', label: 'آفات أو تقرحات جلدية'}, {id: 'skin dryness, peeling, scaliness, or roughness', label: 'جفاف، تقشر، أو خشونة الجلد'}, {id: 'skin irritation', label: 'تهيج في الجلد'}, {id: 'abnormal appearing skin', label: 'مظهر غير طبيعي للجلد'}, {id: 'too little hair', label: 'قلة الشعر (تساقط مفرط)'},
+                {id: 'skin growth', label: 'زوائد جلدية'}, {id: 'skin moles', label: 'شامات جلدية'}, {id: 'change in skin mole size or color', label: 'تغير في حجم أو لون شامة الجلد'}, {id: 'warts', label: 'ثآليل (ثالول)'}, {id: 'skin oiliness', label: 'بشرة دهنية'}, {id: 'skin pain', label: 'ألم في الجلد'}, {id: 'wrinkles on skin', label: 'تجاعيد في الجلد'}, {id: 'diaper rash', label: 'طفح جلدي من الحفاضات'}, {id: 'unwanted hair', label: 'شعر غير مرغوب فيه'}, {id: 'irregular appearing nails', label: 'مظهر غير طبيعي للأظافر'}, {id: 'skin on head or neck looks infected', label: 'الجلد في الرأس أو الرقبة يبدو ملتهباً'}, {id: 'skin on arm or hand looks infected', label: 'الجلد في الذراع أو اليد يبدو ملتهباً'}, {id: 'skin on leg or foot looks infected', label: 'الجلد في الساق أو القدم يبدو ملتهباً'}, {id: 'pallor', label: 'شحوب في الوجه/الجلد'}, {id: 'flushing', label: 'احمرار وتوهج في الوجه'}, {id: 'jaundice', label: 'يرقان (اصفرار الجلد والعينين)'}
+            ],
+            mental: [
+                {id: 'anxiety and nervousness', label: 'القلق والتوتر'}, {id: 'depression', label: 'الاكتئاب'}, {id: 'insomnia', label: 'أرق (صعوبة في النوم)'}, {id: 'emotional symptoms', label: 'أعراض عاطفية/نفسية'}, {id: 'fears and phobias', label: 'مخاوف وفوبيا'}, {id: 'obsessions and compulsions', label: 'هواجس وأفعال قهرية (وسواس)'}, {id: 'temper problems', label: 'مشاكل في المزاج أو الغضب'}, {id: 'nightmares', label: 'كوابيس'},
+                {id: 'depressive or psychotic symptoms', label: 'أعراض اكتئاب أو أعراض ذهانية'}, {id: 'delusions or hallucinations', label: 'أوهام أو هلوسة'}, {id: 'excessive anger', label: 'غضب مفرط'}, {id: 'hostile behavior', label: 'سلوك عدائي'}, {id: 'antisocial behavior', label: 'سلوك معادي للمجتمع'}, {id: 'hysterical behavior', label: 'سلوك هستيري'}, {id: 'low self-esteem', label: 'تدني احترام الذات'}, {id: 'abusing alcohol', label: 'إفراط في شرب الكحول'}, {id: 'drug abuse', label: 'تعاطي المخدرات'}, {id: 'smoking problems', label: 'مشاكل ناتجة عن التدخين'}, {id: 'nailbiting', label: 'قضم الأظافر'}, {id: 'sleepwalking', label: 'مشي أثناء النوم'}, {id: 'stuttering or stammering', label: 'تأتأة أو تلعثم في الكلام'}, {id: 'disturbance of memory', label: 'اضطراب في الذاكرة'}
+            ],
+            general: [
+                {id: 'fever', label: 'حمى (سخونة)'}, {id: 'fatigue', label: 'إرهاق'}, {id: 'chills', label: 'قشعريرة (نفضة)'}, {id: 'sweating', label: 'تعرق'}, {id: 'weakness', label: 'ضعف عام'}, {id: 'feeling ill', label: 'شعور عام بالمرض أو التعب'}, {id: 'decreased appetite', label: 'نقص في الشهية'}, {id: 'recent weight loss', label: 'فقدان وزن حديث'},
+                {id: 'ache all over', label: 'ألم في جميع أنحاء الجسم'}, {id: 'flu-like syndrome', label: 'أعراض تشبه الأنفلونزا'}, {id: 'feeling hot and cold', label: 'شعور متناوب بالحرارة والبرودة'}, {id: 'feeling hot', label: 'الشعور بالحرارة'}, {id: 'feeling cold', label: 'شعور بالبرد'}, {id: 'hot flashes', label: 'هبات ساخنة'}, {id: 'fainting', label: 'إغماء'}, {id: 'seizures', label: 'نوبات صرع أو تشنج'}, {id: 'allergic reaction', label: 'تفاعل تحسسي (حساسية)'}, {id: 'sleepiness', label: 'نعاس مستمر'}, {id: 'thirst', label: 'عطش مستمر'}, {id: 'weight gain', label: 'زيادة في الوزن'}, {id: 'underweight', label: 'نحافة أو نقص في الوزن'}, {id: 'excessive appetite', label: 'زيادة مفرطة في الشهية'}, {id: 'loss of sensation', label: 'فقدان الإحساس'}, {id: 'slurring words', label: 'ثقل في الكلام'}, {id: 'paresthesia', label: 'تنميل أو خدر'}, {id: 'side pain', label: 'ألم في الجنب'}, {id: 'swollen lymph nodes', label: 'تورم في الغدد الليمفاوية'}, {id: 'poor circulation', label: 'ضعف في الدورة الدموية'}, {id: 'fluid retention', label: 'احتباس السوائل'}, {id: 'focal weakness', label: 'ضعف في جزء معين من الجسم'}, {id: 'excessive growth', label: 'نمو مفرط'}, {id: 'lack of growth', label: 'نقص أو تأخر في النمو'}, {id: 'irregular belly button', label: 'سرة بطن غير طبيعية'}, {id: 'premenstrual tension or irritability', label: 'توتر أو عصبية قبل الدورة الشهرية'}, {id: 'irritable infant', label: 'تهيج أو بكاء مستمر للرضيع'}, {id: 'infant feeding problem', label: 'مشكلة في تغذية الرضيع'}, {id: 'symptoms of infants', label: 'أعراض خاصة بالرضع'}, {id: 'pain or soreness of breast', label: 'ألم أو وجع في الثدي'}, {id: 'bleeding or discharge from nipple', label: 'نزيف أو إفرازات من الحلمة'}, {id: 'problems with shape or size of breast', label: 'تغير في شكل أو حجم الثدي'}, {id: 'lump or mass of breast', label: 'كتلة في الثدي'}, {id: 'postpartum problems of the breast', label: 'مشاكل الثدي بعد الولادة'}
+            ]
+        };
+
+        // خريطة للوصول السريع للاسم العربي لكل عرض
+        const symptomLabelsMap = {};
+        Object.values(symptomsData).forEach(list => {
+            list.forEach(sym => { symptomLabelsMap[sym.id] = sym.label; });
+        });
+
+        let selectedSymptoms = new Set();
+        let currentRegion = 'head';
+        let isExpanded = false;
+
+        function showSymptoms(region, btnElement) {
+            currentRegion = region;
+            isExpanded = false;
+
+            document.querySelectorAll('.region-btn').forEach(btn => btn.classList.remove('active'));
+            if (btnElement) btnElement.classList.add('active');
+
+            renderSymptoms();
+        }
+
+        function renderSymptoms() {
+            const box = document.getElementById('symptoms-box');
+            const toggleBtn = document.getElementById('toggle-more-btn');
+            const list = symptomsData[currentRegion];
+
+            box.innerHTML = '';
+            const itemsToShow = isExpanded ? list : list.slice(0, DEFAULT_VISIBLE);
+
+            itemsToShow.forEach(sym => {
+                const isChecked = selectedSymptoms.has(sym.id) ? 'checked' : '';
+                box.innerHTML += `
+                    <div>
+                        <input type="checkbox" id="${sym.id}" value="${sym.id}" ${isChecked} onchange="toggleSymptom('${sym.id}')">
+                        <label for="${sym.id}" class="symptom-label">${sym.label}</label>
+                    </div>
+                `;
+            });
+
+            if (list.length > DEFAULT_VISIBLE) {
+                const remaining = list.length - DEFAULT_VISIBLE;
+                toggleBtn.style.display = 'inline-block';
+                toggleBtn.innerText = isExpanded ? '− إخفاء الأعراض الإضافية' : `+ عرض باقي الأعراض (${remaining})`;
+            } else {
+                toggleBtn.style.display = 'none';
+            }
+        }
+
+        function toggleMoreSymptoms() {
+            isExpanded = !isExpanded;
+            renderSymptoms();
+        }
+
+        function toggleSymptom(id) {
+            const checkbox = document.getElementById(id);
+            if (checkbox && checkbox.checked) {
+                selectedSymptoms.add(id);
+            } else {
+                selectedSymptoms.delete(id);
+            }
+            updateSelectedBar();
+        }
+
+        function removeSymptom(id) {
+            selectedSymptoms.delete(id);
+            const checkbox = document.getElementById(id);
+            if (checkbox) checkbox.checked = false;
+            updateSelectedBar();
+        }
+
+        function clearAllSymptoms() {
+            selectedSymptoms.clear();
+            renderSymptoms();
+            updateSelectedBar();
+        }
+
+        function updateSelectedBar() {
+            const bar = document.getElementById('selected-bar');
+            const wrapper = document.getElementById('chips-wrapper');
+            const countSpan = document.getElementById('selected-count');
+
+            countSpan.innerText = selectedSymptoms.size;
+
+            if (selectedSymptoms.size === 0) {
+                bar.style.display = 'none';
+                wrapper.innerHTML = '';
+                return;
+            }
+
+            bar.style.display = 'block';
+            wrapper.innerHTML = '';
+
+            selectedSymptoms.forEach(id => {
+                const label = symptomLabelsMap[id] || id;
+                wrapper.innerHTML += `
+                    <span class="chip">
+                        ${label}
+                        <button class="chip-remove" onclick="removeSymptom('${id}')" title="حذف">×</button>
+                    </span>
+                `;
+            });
+        }
+
+        function toggleModelDetails() {
+            const details = document.getElementById('models-details');
+            const btn = document.getElementById('toggle-models-btn');
+            if (details.style.display === 'none') {
+                details.style.display = 'block';
+                btn.innerText = '− إخفاء تفاصيل الخوارزميات الثلاث';
+            } else {
+                details.style.display = 'none';
+                btn.innerText = '+ عرض تفاصيل الخوارزميات الثلاث';
+            }
+        }
+
+        function getDiagnosis() {
+            if (selectedSymptoms.size === 0) {
+                alert("الرجاء اختيار عرض واحد على الأقل من القوائم للبدء بالتشخيص.");
+                return;
+            }
+
+            const symptomsArray = Array.from(selectedSymptoms);
+
+            fetch('/predict', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ symptoms: symptomsArray })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('results-container').style.display = 'block';
+                document.getElementById('final-result').innerText = data.Final_Diagnosis;
+                document.getElementById('agreement-note').innerText = data.Agreement_Note;
+                document.getElementById('dt-result').innerText = data.Decision_Tree;
+                document.getElementById('nb-result').innerText = data.Naive_Bayes;
+                document.getElementById('knn-result').innerText = data.KNN;
+
+                // تجهيز قائمة الأعراض المختارة لتقرير الطباعة PDF
+                const labels = symptomsArray.map(id => symptomLabelsMap[id] || id).join(' ، ');
+                document.getElementById('print-symptoms-summary').innerHTML = `<strong>الأعراض المُدخلة:</strong> ${labels}`;
+
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("تعذر الاتصال بالخادم. تأكد من أن ملف app.py قيد التشغيل.");
+            });
+        }
+
+        window.onload = () => {
+            const firstBtn = document.querySelector('.region-btn');
+            showSymptoms('head', firstBtn);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام التشخيص الطبي الذكي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #3b82f6; /* لون أزرق مشابه للصورة */
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* حاوية الخطوة (البطاقة الكبيرة البيضاء) */
+        .step-container {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        /* عنوان الخطوة (مثال: 1 حدّد منطقة العرض...) */
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .step-number {
+            background-color: #eff6ff; /* أزرق فاتح جداً للخلفية */
+            color: var(--primary-blue);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .step-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        /* ----- الخطوة 1: شبكة المناطق ----- */
+        .regions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            direction: rtl; /* لضمان ترتيب البطاقات من اليمين لليسار */
+        }
+
+        .region-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .region-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .region-card.selected {
+            border: 2px solid var(--primary-blue);
+            background-color: #f8fafc;
+        }
+
+        .region-icon {
+            font-size: 32px;
+            line-height: 1;
+        }
+
+        .region-name {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        /* ----- الخطوة 2: الأعراض (مخفية مبدئياً) ----- */
+        #step2-container {
+            display: none; /* يتم إظهاره عبر JS */
+        }
+
+        .symptoms-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: flex-start;
+        }
+
+        /* تصميم زر العرض (Pill Shape) */
+        .symptom-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 9999px; /* شكل الحبة */
+            padding: 10px 20px;
+            font-size: 15px;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .symptom-label:hover {
+            background-color: #f1f5f9;
+        }
+
+        /* إخفاء الـ Checkbox الأصلي */
+        .symptom-label input[type="checkbox"] {
+            display: none;
+        }
+
+        /* تصميم الأيقونة (+) داخل الزر */
+        .add-icon {
+            color: var(--text-muted);
+            font-size: 18px;
+            line-height: 1;
+            font-weight: 300;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border: 1px solid #cbd5e1;
+            border-radius: 50%;
+        }
+
+        /* تغيير تصميم الزر والأيقونة عند التحديد */
+        .symptom-label.checked {
+            background-color: #eff6ff;
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+            font-weight: 500;
+        }
+        
+        .symptom-label.checked .add-icon {
+            border-color: var(--primary-blue);
+            background-color: var(--primary-blue);
+            color: white;
+            content: '✓'; /* سيتم تغيير النص عبر JS */
+        }
+
+        /* ----- زر الإرسال والنتيجة ----- */
+        .submit-btn {
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: 700;
+            font-family: 'Tajawal', sans-serif;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 12px;
+            transition: background-color 0.2s;
+        }
+
+        .submit-btn:hover {
+            background-color: #2563eb;
+        }
+
+        .result-box {
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            margin-top: 24px;
+        }
+
+        .disease-name {
+            font-size: 24px;
+            color: var(--primary-blue);
+            font-weight: 700;
+            margin: 16px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        
+        <form action="/" method="POST" id="diagnosisForm">
+            
+            <!-- ================= الخطوة 1 ================= -->
+            <div class="step-container">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <div class="step-title">حدّد منطقة العرض أو الشكوى الطبية</div>
+                </div>
+
+                <div class="regions-grid">
+                    <!-- الرأس -->
+                    <div class="region-card" onclick="selectRegion('head', this)">
+                        <div class="region-icon">🧠</div>
+                        <div class="region-name">الرأس والعينين</div>
+                    </div>
+                    
+                    <!-- الصدر -->
+                    <div class="region-card" onclick="selectRegion('chest', this)">
+                        <div class="region-icon">🫁</div>
+                        <div class="region-name">الصدر والتنفس</div>
+                    </div>
+
+                    <!-- البطن -->
+                    <div class="region-card" onclick="selectRegion('abdomen', this)">
+                        <div class="region-icon">🩺</div>
+                        <div class="region-name">البطن والجهاز الهضمي</div>
+                    </div>
+
+                    <!-- أطراف (مثال إضافي) -->
+                    <div class="region-card" onclick="selectRegion('limbs', this)">
+                        <div class="region-icon">🦴</div>
+                        <div class="region-name">الأطراف والمفاصل</div>
+                    </div>
+
+                    <!-- عامة -->
+                    <div class="region-card" onclick="selectRegion('general', this)">
+                        <div class="region-icon">🌡️</div>
+                        <div class="region-name">أعراض عامة</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= الخطوة 2 (مخفية مبدئياً) ================= -->
+            <div class="step-container" id="step2-container" style="margin-top: 24px;">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <div class="step-title">اختر الأعراض التي تشعر بها</div>
+                </div>
+
+                <!-- حاويات الأعراض (يتم التبديل بينها) -->
+                
+                <!-- أعراض الرأس -->
+                <div id="head-symptoms" class="symptoms-wrapper" style="display: none;">
+                    <label class="symptom-label" onclick="toggleSymptom(this)">
+                        <input type="checkbox" name="symptoms" value="headache">
+                        صداع حاد
+                        <span class="add-icon">+</span>
+                    </label>
+                    <label class="symptom-label" onclick="toggleSymptom(this)">
+                        <input type="checkbox" name="symptoms" value="blurred_and_distorted_vision">
+                        تشوش في الرؤية
+                        <span class="add-icon">+</span>
+                    </label>
+                    <label class="symptom-label" onclick="toggleSymptom(this)">
+                        <input type="checkbox" name="symptoms" value="dizziness">
+                        دوخة ودوار
+                        <span class="add-icon">+</span>
+                    </label>
+                </div>
+
+                <!-- أعراض الصدر -->
+                <div id="chest-symptoms" class="symptoms-wrapper" style="display: none;">
+                    <label class="symptom-label" onclick="toggleSymptom(this)">
+                        <input type="checkbox" name="symptoms" value="shortness_of_breath">
+                        ضيق في التنفس
+                        <span class="add-icon">+</span>
+                    </label>
+                    <label class="symptom-label" onclick="toggleSymptom(this)">
+                        <input type="checkbox" name="symptoms" value="chest_pain">
+                        ألم في الصدر
+                        <span class="add-icon">+</span>
+                    </label>
+                    <label class="symptom-label" onclick="toggleSymptom(this)">
+                        <input type="checkbox" name="symptoms" value="cough">
+                        سعال جاف
+                        <span class="add-icon">+</span>
+                    </label>
+                </div>
+
+                <!-- أعراض البطن -->
+                <div id="abdomen-symptoms" class="symptoms-wrapper" style="display: none;">
+                    <label class="symptom-label" onclick="toggleSymptom(this)">
+                        <input type="checkbox" name="symptoms" value="stomach_pain">
+                        ألم في المعدة
+                        <span class="add-icon">+</span>
+                    </label>
+                    <label class="symptom-label" onclick="toggleSymptom(this)">
+                        <input type="checkbox" name="symptoms" value="vomiting">
+                        غثيان واستفراغ
+                        <span class="add-icon">+</span>
+                    </label>
+                </div>
+                
+                <!-- أعراض عامة -->
+                <div id="general-symptoms" class="symptoms-wrapper" style="display: none;">
+                    <label class="symptom-label" onclick="toggleSymptom(this)">
+                        <input type="checkbox" name="symptoms" value="fever">
+                        ارتفاع الحرارة
+                        <span class="add-icon">+</span>
+                    </label>
+                    <label class="symptom-label" onclick="toggleSymptom(this)">
+                        <input type="checkbox" name="symptoms" value="fatigue">
+                        إرهاق عام
+                        <span class="add-icon">+</span>
+                    </label>
+                </div>
+                
+                <!-- أعراض الأطراف (فارغة كمثال) -->
+                <div id="limbs-symptoms" class="symptoms-wrapper" style="display: none;">
+                     <label class="symptom-label" onclick="toggleSymptom(this)">
+                        <input type="checkbox" name="symptoms" value="joint_pain">
+                        ألم مفاصل
+                        <span class="add-icon">+</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="submit-btn" style="margin-top: 32px;">عرض نتيجة التشخيص</

@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+Final_Cleaned_Disease_Data.csv
+dt_model.pkl
+knn_model.pkl

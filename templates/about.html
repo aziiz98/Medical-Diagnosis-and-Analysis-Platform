@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عن المشروع والخوارزميات</title>
+    <style>
+        :root { --primary-blue: #0056b3; --light-blue: #e8f0fe; --bg-color: #f4f6f9; --card-bg: #ffffff; --text-main: #333; --text-muted: #666; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0 0 40px 0; color: var(--text-main); }
+        .navbar { background-color: var(--primary-blue); padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        .navbar-brand { font-size: 18px; font-weight: bold; color: white; text-decoration: none; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 15px; font-weight: 500; padding: 6px 12px; border-radius: 6px; transition: 0.2s; }
+        .nav-links a:hover, .nav-links a.active { background-color: rgba(255,255,255,0.2); color: white; }
+
+        .page-content { padding: 30px 20px; max-width: 900px; margin: auto; }
+        .card { background: var(--card-bg); border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        h2 { color: var(--primary-blue); margin-top: 0; border-bottom: 2px solid var(--light-blue); padding-bottom: 10px; font-size: 20px; }
+        p { line-height: 1.7; color: var(--text-muted); }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        th, td { border: 1px solid #e0e0e0; padding: 12px; text-align: right; font-size: 14px; }
+        th { background-color: var(--light-blue); color: var(--primary-blue); }
+
+        .team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 16px; }
+        .team-member { background: var(--bg-color); padding: 14px; border-radius: 8px; text-align: center; font-weight: 600; border: 1px solid #e0e0e0; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">منصة التشخيص الطبي الذكي</a>
+        <div class="nav-links">
+            <a href="/">التشخيص</a>
+            <a href="/about" class="active">عن المشروع والخوارزميات</a>
+            <a href="/how-it-works">كيف يعمل النظام</a>
+        </div>
+    </nav>
+
+    <div class="page-content">
+        <div class="card">
+            <h2>نبذة عن المشروع ومجموعة البيانات</h2>
+            <p>
+                يهدف هذا المشروع إلى بناء نظام ذكي لتحليل الأعراض والتنبؤ بالحالات المرضية باستخدام خوارزميات تعلم الآلة (Machine Learning) لتقديم تشخيص مبدئي فوري.
+                تم تدريب النماذج على مجموعة بيانات طبية منظّفة (<code>Final_Cleaned_Disease_Data.csv</code>) تضم مئات الأعراض المصنفة تشريحياً لرفع دقة التنبؤ وتسهيل تجربة الاستخدام.
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>مقارنة الخوارزميات المستخدمة</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>الخوارزمية</th>
+                        <th>فكرة العمل</th>
+                        <th>سبب الاختيار</th>
+                        <th>الدقة (Accuracy)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Naive Bayes</strong></td>
+                        <td>تعتمد على الاحتمالات الإحصائية لارتباط الأعراض بالمرض.</td>
+                        <td>فعّالة جداً مع البيانات الثنائية (0 و 1) وكثرة الأعراض.</td>
+                        <td><strong>83.94%</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>KNN (Cosine)</strong></td>
+                        <td>تقيس الزاوية بين نمط أعراض المريض وأقرب الحالات المسجلة.</td>
+                        <td>لا تنخدع بكثرة الأصفار وتركز على الأعراض الموجودة فعلياً.</td>
+                        <td><strong>80.46%</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Decision Tree</strong></td>
+                        <td>بناء شجرة قرارات تقسم البيانات بناءً على أهم الأعراض.</td>
+                        <td>سريعة التنبؤ وسهلة التفسير في الحالات الطبية.</td>
+                        <td><strong>75.57%</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>فريق العمل</h2>
+            <p><strong>الجامعة:</strong> جامعة أم القرى — <strong>القسم:</strong> علوم الحاسب والذكاء الاصطناعي</p>
+            <div class="team-grid">
+                <div class="team-member">عبدالعزيز خالد الصاعدي</div>
+                <div class="team-member">محمد عبدالله البركاتي</div>
+                <div class="team-member">جواد معيض الزهراني</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
